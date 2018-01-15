@@ -376,6 +376,7 @@ public class ReactNativeAutoUpdater {
                         Log.e("autoUpdate", "exception ::: "+e);
                     }
             } catch (Exception e) {
+              //error in downloading bundle
                 e.printStackTrace();
                 return e.toString();
             } finally {
