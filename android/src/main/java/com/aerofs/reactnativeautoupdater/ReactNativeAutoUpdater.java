@@ -35,7 +35,7 @@ public class ReactNativeAutoUpdater {
     private final String RNAU_STORED_JS_FILENAME = "main.android.jsbundle";
     private final String RNAU_STORED_JS_TEMP_FILENAME = "temp.android.jsbundle";
     private final String RNAU_STORED_JS_FOLDER = "JSCode";
-
+    //temp.android.jsbundle is created to download the bundle and if the bundle is downloaded properly it is renamed to main.android.jsbundle
     public enum ReactNativeAutoUpdaterFrequency {
         EACH_TIME, DAILY, WEEKLY
     }
@@ -203,7 +203,7 @@ public class ReactNativeAutoUpdater {
             e.printStackTrace();
         }
     }
-    
+
 
     private boolean shouldDownloadUpdate(String versionStr, String minContainerVersionStr) {
         boolean shouldDownload = false;
@@ -361,7 +361,7 @@ public class ReactNativeAutoUpdater {
                         output.write(data, 0, count);
                     }
 
-                    // Rename temp js bundle file to main bundle file
+                    // Rename temp js bundle file to main bundle file after download is completed so that crash does not occur.  Changes will be reflected in next app launch after the download
                     File from = new File(jsCodeDir, RNAU_STORED_JS_TEMP_FILENAME);
                     File to = new File(jsCodeDir, RNAU_STORED_JS_FILENAME);
                     from.renameTo(to);
