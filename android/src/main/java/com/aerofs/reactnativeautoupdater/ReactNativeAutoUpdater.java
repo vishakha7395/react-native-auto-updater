@@ -33,6 +33,7 @@ public class ReactNativeAutoUpdater {
     public static final String RNAU_STORED_VERSION = "React_Native_Auto_Updater_Stored_Version";
     private final String RNAU_LAST_UPDATE_TIMESTAMP = "React_Native_Auto_Updater_Last_Update_Timestamp";
     private final String RNAU_STORED_JS_FILENAME = "main.android.jsbundle";
+    private final String RNAU_STORED_JS_TEMP_FILENAME = "temp.android.jsbundle";
     private final String RNAU_STORED_JS_FOLDER = "JSCode";
 
     public enum ReactNativeAutoUpdaterFrequency {
@@ -202,6 +203,7 @@ public class ReactNativeAutoUpdater {
             e.printStackTrace();
         }
     }
+    
 
     private boolean shouldDownloadUpdate(String versionStr, String minContainerVersionStr) {
         boolean shouldDownload = false;
@@ -343,24 +345,36 @@ public class ReactNativeAutoUpdater {
                     jsCodeDir.mkdirs();
                 }
                 File jsCodeFile = new File(jsCodeDir, RNAU_STORED_JS_FILENAME);
+                File jsCodeFile = new File(jsCodeDir, RNAU_STORED_JS_TEMP_FILENAME);
                 output = new FileOutputStream(jsCodeFile);
 
-                byte data[] = new byte[4096];
+                byte data[] = new byte[12288];
                 int count;
-                while ((count = input.read(data)) != -1) {
-                    // allow canceling with back button
-                    if (isCancelled()) {
-                        input.close();
-                        return null;
-                    }
-                    output.write(data, 0, count);
-                }
 
-                SharedPreferences prefs = context.getSharedPreferences(RNAU_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.putString(RNAU_STORED_VERSION, params[1]);
-                editor.putLong(RNAU_LAST_UPDATE_TIMESTAMP, new Date().getTime());
-                editor.apply();
+                try {
+                    while ((count = input.read(data)) != -1) {
+                        // allow canceling with back button
+                        if (isCancelled()) {
+                            input.close();
+                            return null;
+                        }
+                        output.write(data, 0, count);
+                    }
+
+                    // Rename temp js bundle file to main bundle file
+                    File from = new File(jsCodeDir, RNAU_STORED_JS_TEMP_FILENAME);
+                    File to = new File(jsCodeDir, RNAU_STORED_JS_FILENAME);
+                    from.renameTo(to);
+
+                    SharedPreferences prefs = context.getSharedPreferences(RNAU_SHARED_PREFERENCES, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putString(RNAU_STORED_VERSION, params[1]);
+                    editor.putLong(RNAU_LAST_UPDATE_TIMESTAMP, new Date().getTime());
+                    editor.apply();
+//                    Log.d("autoUpdate","Bundle Downloaded");
+                    } catch (Exception e){
+                        Log.e("autoUpdate", "exception ::: "+e);
+                    }
             } catch (Exception e) {
                 e.printStackTrace();
                 return e.toString();
